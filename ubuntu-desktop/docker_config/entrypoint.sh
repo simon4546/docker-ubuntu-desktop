@@ -7,9 +7,6 @@ if [ ! -f "/docker_config/init_flag" ]; then
     usermod -aG sudo $USER
     echo "$USER:$PASSWORD" | chpasswd
     chsh -s /bin/bash $USER
-    # config nomachine
-    sed -i "s|#EnableClipboard both|EnableClipboard both |g" /usr/NX/etc/server.cfg
-    sed -i '/DefaultDesktopCommand/c\DefaultDesktopCommand "xset s off && /usr/bin/startxfce4"' /usr/NX/etc/node.cfg
     # config kasmvnc
     addgroup $USER ssl-cert
     su $USER -c "echo -e \"$PASSWORD\n$PASSWORD\n\" | vncpasswd -u $USER -o -w -r"
@@ -34,10 +31,9 @@ fi
 # start sshd & remote desktop
 /usr/sbin/sshd
 /etc/init.d/dbus start
-if [ "${REMOTE_DESKTOP}" = "nomachine" ]; then
-    echo "start nomachine"
-    /etc/NX/nxserver --startup
-    tail -f /usr/NX/var/log/nxserver.log
+if [ "${REMOTE_DESKTOP}" = "xrdp" ]; then
+    echo "start xrdp"
+    /etc/init.d/xrdp start
 elif [ "${REMOTE_DESKTOP}" = "kasmvnc" ]; then
     echo "start kasmvnc"
     rm -rf /tmp/.X1000-lock /tmp/.X11-unix/X1000

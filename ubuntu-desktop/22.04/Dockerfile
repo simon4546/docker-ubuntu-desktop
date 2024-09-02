@@ -1,10 +1,11 @@
 ARG BASE_IMAGE=ubuntu:22.04
 From $BASE_IMAGE
 
-LABEL maintainer "zhengpeng ge"
-MAINTAINER zhenpeng ge "https://github.com/gezp"
+LABEL maintainer "simon4546"
+MAINTAINER simon4546 "https://github.com/simon4546"
 
 ENV DEBIAN_FRONTEND=noninteractive
+
 ENV USER=ubuntu \
     PASSWORD=ubuntu \
     UID=1000 \
@@ -13,7 +14,7 @@ ENV USER=ubuntu \
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 ENV VGL_DISPLAY=egl
-ENV REMOTE_DESKTOP=nomachine
+ENV REMOTE_DESKTOP=xrdp
 ENV VNC_THREADS=2
 
 ## Copy config
@@ -50,8 +51,8 @@ RUN apt-get update && \
 
 ## Install some common tools 
 RUN apt-get update  && \
-    apt-get install -y sudo vim gedit locales wget curl git git-lfs gnupg2 lsb-release net-tools iputils-ping mesa-utils \
-                    openssh-server bash-completion software-properties-common python3-pip python3-numpy tmux && \
+    apt-get install -y sudo vim locales wget curl git git-lfs gnupg2 lsb-release net-tools iputils-ping mesa-utils \
+                    openssh-server bash-completion software-properties-common python3-pip && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 2 && \
     pip3 install --upgrade pip &&\
     rm -rf /var/lib/apt/lists/* 
@@ -76,20 +77,15 @@ ENV DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 RUN apt-get update && apt-get install -y pulseaudio && mkdir -p /var/run/dbus &&\
     rm -rf /var/lib/apt/lists/*
 
-## Install nomachine
-RUN bash /docker_config/install_nomachine.sh &&\
-    groupmod -g 2000 nx 
+## Install xrdp
+RUN bash /docker_config/install_xrdp.sh
 
-## Install kasmvnc
-RUN bash /docker_config/install_kasmvnc.sh &&\
-    rm -rf /var/lib/apt/lists/*
-
-## Configure ssh 
+# Configure ssh 
 RUN mkdir /var/run/sshd &&  \
     echo root:$PASSWORD | chpasswd && \
     sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
     sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
 
-EXPOSE 22 4000
+EXPOSE 22 3389
 
 ENTRYPOINT ["/docker_config/entrypoint.sh"]

@@ -33,9 +33,9 @@ if [[("${CUDA_VERSION}" == "")]];then
 else
     DOCKER_TAG=${UBUNTU_VERSION}-cu${CUDA_VERSION}
 fi
-
+# --build-arg http_proxy=http://127.0.0.1:18001 --build-arg https_proxy=http://127.0.0.1:18001
 docker build ubuntu-desktop --file ubuntu-desktop/${UBUNTU_VERSION}/Dockerfile \
-             --build-arg BASE_IMAGE=${BASE_IMAGE} \
+             --build-arg BASE_IMAGE=${BASE_IMAGE}  \
              --tag ubuntu-desktop:${DOCKER_TAG}
 if [[ $? != 0 ]]; then 
     echo "Failed to build docker image 'ubuntu-desktop:${DOCKER_TAG}'"

@@ -60,7 +60,7 @@ docker pull gezp/ubuntu-desktop:20.04-cu11.0.3
 
 create conatiner
 ```bash
-# create conatiner with nomachine
+# create conatiner with xrdp
 docker run -d --restart=on-failure \
     --name my_workspace \
     --cap-add=SYS_PTRACE \
@@ -71,7 +71,7 @@ docker run -d --restart=on-failure \
     -e GID=$(id -g) \
     -e UID=$(id -u) \
     -p 10022:22 \
-    -p 14000:4000 \
+    -p 13389:3389 \
     gezp/ubuntu-desktop:20.04-cu11.0.3
 
 # create conatiner with kasmvnc
@@ -95,11 +95,6 @@ access conatiner by ssh
 ssh ubuntu@host-ip -p 10022
 ```
 * it's recommended to use vscode + remote ssh plugin
-
-access conatiner by remote desktop (nomachine)
-
-* download and install [nomachine software](https://www.nomachine.com/).
-* the ip is host's ip, the port is 14000.
 
 access conatiner by remote desktop (kasmvnc)
 
@@ -163,6 +158,8 @@ cd docker-ubuntu-desktop
 ./docker_build.sh 20.04
 # for 20.04-cu11.0.3  (based on nvidia/cuda)
 ./docker_build.sh 20.04-cu11.0.3
+# build with proxy
+docker build --build-arg http_proxy=http://172.17.0.1:8123 --build-arg https_proxy=http://172.17.0.1:8123 -t image_name .
 ```
 
 ## Acknowledgement
