@@ -7,12 +7,6 @@ if [ ! -f "/docker_config/init_flag" ]; then
     usermod -aG sudo $USER
     echo "$USER:$PASSWORD" | chpasswd
     chsh -s /bin/bash $USER
-    # config kasmvnc
-    # addgroup $USER ssl-cert
-    # su $USER -c "echo -e \"$PASSWORD\n$PASSWORD\n\" | vncpasswd -u $USER -o -w -r"
-    # vgl for user
-    echo "export PATH=/usr/NX/scripts/vgl:\$PATH" >> /home/$USER/.bashrc
-    echo "export VGL_DISPLAY=$VGL_DISPLAY" >> /home/$USER/.bashrc
     # extra env init for developer
     if [ -f "/docker_config/env_init.sh" ]; then
         bash /docker_config/env_init.sh
@@ -30,13 +24,21 @@ if [ -f "/docker_config/custom_startup.sh" ]; then
 fi
 # start sshd & remote desktop
 /usr/sbin/sshd
-/etc/init.d/dbus start
+start_xrdp_services() {
+    # Preventing xrdp startup failure
+    rm -rf /var/run/xrdp-sesman.pid
+    rm -rf /var/run/xrdp.pid
+    rm -rf /var/run/xrdp/xrdp-sesman.pid
+    rm -rf /var/run/xrdp/xrdp.pid
+
+    # Use exec ... to forward SIGNAL to child processes
+    xrdp-sesman && exec xrdp -n
+}
 if [ "${REMOTE_DESKTOP}" = "xrdp" ]; then
     echo "start xrdp"
-    systemctl restart xrdp
-    ufw allow 3389/tcp
-    ufw reload
+    start_xrdp_services
     echo "xrdp started"
+    tail -f /dev/null
 elif [ "${REMOTE_DESKTOP}" = "kasmvnc" ]; then
     echo "start kasmvnc"
     rm -rf /tmp/.X1000-lock /tmp/.X11-unix/X1000

@@ -13,68 +13,24 @@ ENV USER=ubuntu \
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
-ENV VGL_DISPLAY=egl
 ENV REMOTE_DESKTOP=xrdp
 ENV VNC_THREADS=2
 
 ## Copy config
 COPY docker_config /docker_config
 
-## Install and Configure OpenGL
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        libxau6 libxdmcp6 libxcb1 libxext6 libx11-6 \
-        libglvnd0 libgl1 libglx0 libegl1 libgles2 \
-        libglvnd-dev libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
-    echo "{\n\
-\"file_format_version\" : \"1.0.0\",\n\
-\"ICD\": {\n\
-    \"library_path\": \"libEGL_nvidia.so.0\"\n\
-}\n\
-}" > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
-
-## Install and Configure Vulkan
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends vulkan-tools && \
-    rm -rf /var/lib/apt/lists/* && \
-    VULKAN_API_VERSION=$(dpkg -s libvulkan1 | grep -oP 'Version: [0-9|\.]+' | grep -oP '[0-9]+(\.[0-9]+)(\.[0-9]+)') && \
-    mkdir -p /etc/vulkan/icd.d/ && \
-    echo "{\n\
-\"file_format_version\" : \"1.0.0\",\n\
-\"ICD\": {\n\
-    \"library_path\": \"libGLX_nvidia.so.0\",\n\
-        \"api_version\" : \"${VULKAN_API_VERSION}\"\n\
-}\n\
-}" > /etc/vulkan/icd.d/nvidia_icd.json
-
 ## Install some common tools 
 RUN apt-get update  && \
-    apt-get install -y sudo vim locales wget curl git git-lfs gnupg2 lsb-release net-tools iputils-ping mesa-utils \
-                    openssh-server bash-completion software-properties-common python3-pip && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3 2 && \
-    pip3 install --upgrade pip &&\
+    apt-get install -y sudo wget curl git lsb-release net-tools iputils-ping \
+            openssh-server software-properties-common && \
     rm -rf /var/lib/apt/lists/* 
 
-## Install desktop
+# ## Install desktop
 RUN apt-get update && \
-    # add apt repo for firefox
-    add-apt-repository -y ppa:mozillateam/ppa &&\
-    mkdir -p /etc/apt/preferences.d &&\
-    echo "Package: firefox*\n\
-Pin: release o=LP-PPA-mozillateam\n\
-Pin-Priority: 1001" > /etc/apt/preferences.d/mozilla-firefox &&\
-    # install xfce4 and firefox
-    apt-get install -y xfce4 terminator fonts-wqy-zenhei ffmpeg firefox &&\
+    # install xfce4
+    apt-get install -y xfce4 &&\
     # remove and disable screensaver
     apt-get remove -y xfce4-screensaver --purge &&\
-    # set firefox as default web browser
-    update-alternatives --set x-www-browser /usr/bin/firefox &&\
-    rm -rf /var/lib/apt/lists/*
-
-ENV DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
-RUN apt-get update && apt-get install -y pulseaudio && mkdir -p /var/run/dbus &&\
     rm -rf /var/lib/apt/lists/*
 
 ## Install xrdp
