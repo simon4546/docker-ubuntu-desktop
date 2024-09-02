@@ -8,8 +8,8 @@ if [ ! -f "/docker_config/init_flag" ]; then
     echo "$USER:$PASSWORD" | chpasswd
     chsh -s /bin/bash $USER
     # config kasmvnc
-    addgroup $USER ssl-cert
-    su $USER -c "echo -e \"$PASSWORD\n$PASSWORD\n\" | vncpasswd -u $USER -o -w -r"
+    # addgroup $USER ssl-cert
+    # su $USER -c "echo -e \"$PASSWORD\n$PASSWORD\n\" | vncpasswd -u $USER -o -w -r"
     # vgl for user
     echo "export PATH=/usr/NX/scripts/vgl:\$PATH" >> /home/$USER/.bashrc
     echo "export VGL_DISPLAY=$VGL_DISPLAY" >> /home/$USER/.bashrc
@@ -33,7 +33,10 @@ fi
 /etc/init.d/dbus start
 if [ "${REMOTE_DESKTOP}" = "xrdp" ]; then
     echo "start xrdp"
-    /etc/init.d/xrdp start
+    systemctl restart xrdp
+    ufw allow 3389/tcp
+    ufw reload
+    echo "xrdp started"
 elif [ "${REMOTE_DESKTOP}" = "kasmvnc" ]; then
     echo "start kasmvnc"
     rm -rf /tmp/.X1000-lock /tmp/.X11-unix/X1000
